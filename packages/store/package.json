@@ -1,0 +1,22 @@
+{
+  "name": "store",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "exports": {
+    "./client": "./index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.2.0",
+    "@prisma/client": "^7.2.0",
+    "@types/node": "^25.0.3",
+    "dotenv": "^17.2.3",
+    "prisma": "^7.2.0"
+  }
+}
