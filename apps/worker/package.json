@@ -1,0 +1,17 @@
+{
+  "name": "worker",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "dependencies": {
+    "axios": "^1.13.2",
+    "redisstream": "*",
+    "store": "*"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
