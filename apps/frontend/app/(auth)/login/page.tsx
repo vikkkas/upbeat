@@ -13,8 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 
 const schema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Please enter a valid email"),
+  password: z.string().min(1, "Password is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -40,11 +40,11 @@ export default function LoginPage() {
         data: data
       });
       
-      const { token, id, username } = response.data.data;
+      const { token, id, name, email } = response.data.data;
       
       // Store token
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify({ id, username }));
+      localStorage.setItem("user", JSON.stringify({ id, name, email }));
       
       router.push("/dashboard");
     } catch (err: any) {
@@ -62,24 +62,25 @@ export default function LoginPage() {
           Login to your account
         </h1>
         <p className="text-sm text-zinc-400">
-          Enter your username below to login to your account
+          Enter your email below to login to your account
         </p>
       </div>
       <div className="grid gap-6">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="email">Email</Label>
               <Input
-                id="username"
-                placeholder="johndoe"
+                id="email"
+                type="email"
+                placeholder="you@example.com"
                 autoCapitalize="none"
                 autoCorrect="off"
                 disabled={isLoading}
-                {...register("username")}
+                {...register("email")}
               />
-              {errors.username && (
-                <p className="text-xs text-red-500">{errors.username.message}</p>
+              {errors.email && (
+                <p className="text-xs text-red-500">{errors.email.message}</p>
               )}
             </div>
             <div className="grid gap-2">

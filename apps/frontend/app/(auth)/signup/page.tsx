@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
 
 const schema = z.object({
-  username: z.string().min(3, "Username must be at least 3 characters"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -69,17 +70,32 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="name">Full Name</Label>
               <Input
-                id="username"
-                placeholder="johndoe"
+                id="name"
+                placeholder="John Doe"
+                autoCapitalize="words"
+                autoCorrect="off"
+                disabled={isLoading}
+                {...register("name")}
+              />
+              {errors.name && (
+                <p className="text-xs text-red-500">{errors.name.message}</p>
+              )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="you@example.com"
                 autoCapitalize="none"
                 autoCorrect="off"
                 disabled={isLoading}
-                {...register("username")}
+                {...register("email")}
               />
-              {errors.username && (
-                <p className="text-xs text-red-500">{errors.username.message}</p>
+              {errors.email && (
+                <p className="text-xs text-red-500">{errors.email.message}</p>
               )}
             </div>
             <div className="grid gap-2">

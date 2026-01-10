@@ -15,19 +15,22 @@ datasource db {
 
 model User {
   id        String    @id @default(uuid())
-  username  String    @unique
+  name      String
+  email     String    @unique
   password  String
   createdAt DateTime  @default(now())
   websites  Website[]
 }
 
 model Website {
-  id           String        @id @default(uuid())
-  url          String
-  timeAdded    DateTime      @default(now())
-  websiteTicks WebsiteTick[]
-  user_id      String
-  user         User          @relation(fields: [user_id], references: [id])
+  id                    String        @id @default(uuid())
+  url                   String
+  timeAdded             DateTime      @default(now())
+  lastNotificationSent  DateTime?
+  lastStatus            WebsiteStatus @default(Unknown)
+  websiteTicks          WebsiteTick[]
+  user_id               String
+  user                  User          @relation(fields: [user_id], references: [id])
 }
 
 model Region {

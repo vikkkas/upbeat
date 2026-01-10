@@ -1,8 +1,9 @@
 import { Router } from "express";
-import { AuthInput } from "../../types";
+import { AuthInput, SignInInput } from "../../types";
 import { prismaClient } from "store/client";
 import jwt from "jsonwebtoken";
 import { config } from "../../config";
+import bcrypt from "bcryptjs";
 
 const userRouter = Router();
 
@@ -12,30 +13,36 @@ userRouter.post("/signup", async (req, res) => {
     return res.status(403).json({
       status: "error",
       message: "Invalid input",
+      errors: data.error.errors,
     });
   }
   try {
-    const userFind = await prismaClient.User.findFirst({
-      where: { username: data.data.username },
+    const userFind = await prismaClient.user.findFirst({
+      where: { email: data.data.email },
     });
     if (userFind) {
       return res.status(403).json({
         status: "error",
-        message: "Username already exists",
+        message: "Email already exists",
       });
     }
 
-    const user = await prismaClient.User.create({
+    // Hash password
+    const hashedPassword = await bcrypt.hash(data.data.password, 10);
+
+    const user = await prismaClient.user.create({
       data: {
-        username: data.data.username,
-        password: data.data.password,
+        name: data.data.name,
+        email: data.data.email,
+        password: hashedPassword,
       },
     });
     res.status(200).json({
       status: "success",
       data: {
         id: user.id,
-        username: user.username,
+        name: user.name,
+        email: user.email,
       },
     });
   } catch (error) {
@@ -51,28 +58,56 @@ userRouter.post("/signup", async (req, res) => {
 });
 
 userRouter.post("/signin", async (req, res) => {
-  const data = AuthInput.safeParse(req.body.data);
-
+  const data = SignInInput.safeParse(req.body.data);
   if (!data.success) {
     return res.status(403).json({
       status: "error",
       message: "Invalid input",
+      errors: data.error.errors,
     });
   }
+
   try {
-    const user = await prismaClient.User.findFirst({
-      where: { username: data.data.username, password: data.data.password },
+    const user = await prismaClient.user.findFirst({
+      where: {
+        email: data.data.email,
+      },
     });
+
+    if (!user) {
+      return res.status(403).json({
+        status: "error",
+        message: "Invalid email or password",
+      });
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(
+      data.data.password,
+      user.password
+    );
+
+    if (!isPasswordValid) {
+      return res.status(403).json({
+        status: "error",
+        message: "Invalid email or password",
+      });
+    }
+
     const token = jwt.sign(
-      { sub: user?.id, username: user?.username },
+      {
+        sub: user.id,
+      },
       config.auth.jwtSecret
     );
+
     res.status(200).json({
       status: "success",
       data: {
         token,
         id: user.id,
-        username: user.username,
+        name: user.name,
+        email: user.email,
       },
     });
   } catch (error) {
