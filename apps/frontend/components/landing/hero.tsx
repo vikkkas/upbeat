@@ -55,11 +55,11 @@ export function Hero() {
               Start Monitoring Free
             </Button>
           </Link>
-          <Link href="#demo">
+          {/* <Link href="#demo">
             <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white/10 bg-white/5 hover:bg-white/10 text-white hover:text-white">
               Live Demo <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-          </Link>
+          </Link> */}
         </motion.div>
 
         <motion.div
