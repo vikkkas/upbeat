@@ -132,37 +132,57 @@ async function fetchWebsite(url: string, websiteId: string) {
     const startTime = Date.now();
     axios
       .get(fullUrl)
-      .then(async () => {
+      .then(async (response) => {
         const endTime = Date.now();
         const responseTime = endTime - startTime;
-        await prismaClient.websiteTick.create({
-          data: {
-            response_time_ms: responseTime,
-            website_id: websiteId,
-            status: "Up",
-            region_id: REGION_ID,
-          },
-        });
         
-        // Send notification if status changed
-        await sendNotificationIfNeeded(websiteId, "Up", url);
+        try {
+          await prismaClient.websiteTick.create({
+            data: {
+              response_time_ms: responseTime,
+              website_id: websiteId,
+              status: "Up",
+              region_id: REGION_ID,
+            },
+          });
+          
+          // Send notification if status changed
+          await sendNotificationIfNeeded(websiteId, "Up", url);
+        } catch (error: any) {
+          if (error.code === 'P2003') {
+            // Foreign key constraint violation - website doesn't exist
+            console.error(`[WORKER] Website ${websiteId} not found in database. Skipping tick.`);
+          } else {
+            console.error(`[WORKER] Error creating tick for ${websiteId}:`, error);
+          }
+        }
         
         resolve();
       })
       .catch(async () => {
         const endTime = Date.now();
         const responseTime = endTime - startTime;
-        await prismaClient.websiteTick.create({
-          data: {
-            response_time_ms: responseTime,
-            website_id: websiteId,
-            status: "Down",
-            region_id: REGION_ID,
-          },
-        });
         
-        // Send notification if status changed
-        await sendNotificationIfNeeded(websiteId, "Down", url);
+        try {
+          await prismaClient.websiteTick.create({
+            data: {
+              response_time_ms: responseTime,
+              website_id: websiteId,
+              status: "Down",
+              region_id: REGION_ID,
+            },
+          });
+          
+          // Send notification if status changed
+          await sendNotificationIfNeeded(websiteId, "Down", url);
+        } catch (error: any) {
+          if (error.code === 'P2003') {
+            // Foreign key constraint violation - website doesn't exist
+            console.error(`[WORKER] Website ${websiteId} not found in database. Skipping tick.`);
+          } else {
+            console.error(`[WORKER] Error creating tick for ${websiteId}:`, error);
+          }
+        }
         
         resolve();
       });

@@ -18,18 +18,15 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ResponseTimeChart } from "@/components/charts/ResponseTimeChart";
+import { UptimeChart } from "@/components/charts/UptimeChart";
+import { StatusDistributionChart } from "@/components/charts/StatusDistributionChart";
 
 interface MonitorPageProps {
     params: Promise<{ id: string }>;
 }
 
 export default function MonitorPage({ params }: MonitorPageProps) {
-  // Unwrap params using React.use() for Next.js 15+ (as implied by recent versions)
-  // or standard unwrap if older. Assuming Next.js 14/15 based on "use client".
-  // Note: params is a Promise in newer Next.js versions for server components, 
-  // but this is a client component which receives it as a prop.
-  // Actually in Next.js 15 client components, params is a Promise. Let's handle it safely.
-  
   const resolvedParams = use(params);
   const id = resolvedParams.id;
   
@@ -37,6 +34,9 @@ export default function MonitorPage({ params }: MonitorPageProps) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
+  const [selectedRange, setSelectedRange] = useState("24h");
+  const [metricsData, setMetricsData] = useState<any[]>([]);
+  const [metricsLoading, setMetricsLoading] = useState(false);
 
   const fetchWebsite = async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
@@ -54,11 +54,29 @@ export default function MonitorPage({ params }: MonitorPageProps) {
     }
   };
 
+  const fetchMetrics = async (range: string) => {
+    setMetricsLoading(true);
+    try {
+      const res = await api.get(`/website/${id}/metrics?range=${range}`);
+      if (res.data.status === "success") {
+        setMetricsData(res.data.data.metrics);
+      }
+    } catch (err) {
+      console.error("Failed to fetch metrics:", err);
+    } finally {
+      setMetricsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchWebsite();
-    const interval = setInterval(() => fetchWebsite(false), 60000); // 1 min poll
+    fetchMetrics(selectedRange);
+    const interval = setInterval(() => {
+      fetchWebsite(false);
+      fetchMetrics(selectedRange);
+    }, 60000); // 1 min poll
     return () => clearInterval(interval);
-  }, [id]);
+  }, [id, selectedRange]);
 
   if (loading) {
     return <MonitorSkeleton />;
@@ -109,7 +127,10 @@ export default function MonitorPage({ params }: MonitorPageProps) {
         <Button 
             variant="outline" 
             size="sm" 
-            onClick={() => fetchWebsite(true)}
+            onClick={() => {
+              fetchWebsite(true);
+              fetchMetrics(selectedRange);
+            }}
             disabled={refreshing}
             className="border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
         >
@@ -150,6 +171,61 @@ export default function MonitorPage({ params }: MonitorPageProps) {
                 <StatBox label="Down (Last 50)" value={downTicks.toString()} color="text-red-500" />
             </div>
         </div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="space-y-6">
+        {/* Time Range Selector */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Performance Metrics</h2>
+          <div className="flex gap-2">
+            {['1h', '24h', '7d', '30d'].map((range) => (
+              <Button
+                key={range}
+                variant={selectedRange === range ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedRange(range)}
+                className={selectedRange === range ? 'bg-emerald-500 hover:bg-emerald-600 text-black' : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white'}
+              >
+                {range}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        {metricsLoading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-[350px] bg-zinc-900 border border-zinc-800 rounded-xl" />
+            <Skeleton className="h-[350px] bg-zinc-900 border border-zinc-800 rounded-xl" />
+          </div>
+        ) : (
+          <>
+            {/* Response Time Chart */}
+            <Card className="bg-zinc-900/50 border-zinc-800">
+              <CardContent className="pt-6">
+                <h3 className="text-sm font-medium text-zinc-400 mb-4">Response Time Over Time</h3>
+                <ResponseTimeChart data={metricsData} />
+              </CardContent>
+            </Card>
+
+            {/* Uptime and Distribution Charts */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="pt-6">
+                  <h3 className="text-sm font-medium text-zinc-400 mb-4">Uptime Percentage</h3>
+                  <UptimeChart data={metricsData} />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-zinc-900/50 border-zinc-800">
+                <CardContent className="pt-6">
+                  <h3 className="text-sm font-medium text-zinc-400 mb-4">Status Distribution (Last 50)</h3>
+                  <StatusDistributionChart upCount={upTicks} downCount={downTicks} />
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Timeline Section */}
