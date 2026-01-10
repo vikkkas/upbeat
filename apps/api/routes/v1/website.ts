@@ -36,37 +36,72 @@ websiteRouter.post("/", authMiddleware, async (req, res) => {
   }
 });
 
-websiteRouter.get("/status/:websiteId", authMiddleware, async (req, res) => {
-  const website = await prismaClient.website.findFirst({
-    where: {
-      user_id: req.userId!,
-      id: req.params.websiteId,
-    },
-    include: {
-      websiteTicks: {
-        orderBy: [{ createdAt: "desc" }],
-        take: 1,
+websiteRouter.get("/:websiteId", authMiddleware, async (req, res) => {
+  try {
+    const website = await prismaClient.website.findFirst({
+      where: {
+        user_id: req.userId!,
+        id: req.params.websiteId,
       },
-    },
-  });
+      include: {
+        websiteTicks: {
+          orderBy: [{ createdAt: "desc" }],
+          take: 50,
+        },
+      },
+    });
 
-  if (!website) {
-    res.status(411).json({
+    if (!website) {
+      return res.status(404).json({
+        status: "error",
+        message: "Website not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        website,
+      },
+    });
+  } catch (error) {
+     console.log(error);
+     res.status(500).json({
       status: "error",
+      message: "Internal Server Error",
     });
   }
-
-  res.status(200).json({
-    status: "success",
-    data: {
-      website,
-    },
-  });
 });
 
-websiteRouter.get("/", (req, res) => {
-  console.log(config.server.environment);
-  res.send("Hello i am here");
+websiteRouter.get("/", authMiddleware, async (req, res) => {
+  try {
+    const websites = await prismaClient.website.findMany({
+      where: {
+        user_id: req.userId!,
+      },
+      include: {
+        websiteTicks: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+        },
+      },
+    });
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        websites,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal Server Error",
+    });
+  }
 });
 
 export default websiteRouter;

@@ -7,10 +7,27 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const header = req.headers.authorization!;
+  const header = req.headers.authorization;
+  
+  if (!header) {
+    return res.status(401).json({
+      status: "error",
+      message: "Unauthorized",
+    });
+  }
+
+  const token = header.split(" ")[1];
+
+  if (!token) {
+     return res.status(401).json({
+      status: "error",
+      message: "Unauthorized - Token missing",
+    });
+  }
+  
   try {
-    let data = jwt.verify(header, config.auth.jwtSecret);
-    req.userId = data.sub as string;
+    const data = jwt.verify(token, config.auth.jwtSecret) as { sub: string };
+    req.userId = data.sub;
     next();
   } catch (err) {
     return res.status(401).json({
