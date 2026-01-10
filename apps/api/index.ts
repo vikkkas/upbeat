@@ -18,7 +18,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"],
 }));
 app.use(express.json());
-
+app.get("/health", (req, res) => {
+  res.status(200).json({ message: "OK" });
+});
 app.use("/api/v1", v1Router);
 
 app.listen(config.server.port, () => {
