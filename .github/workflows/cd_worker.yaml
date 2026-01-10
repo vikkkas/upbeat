@@ -1,0 +1,26 @@
+name: Deploy to my-drop digitalocean - worker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  redeploy_everything:
+    runs-on: ubuntu-latest
+    name: Deploy to digitalocean    
+    steps:
+      - run: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            printf "%s\n" "${{ secrets.SSH_KEY_MY_DROP }}" > ~/.ssh/id_ed25519
+            chmod 600 ~/.ssh/id_ed25519
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_ed25519 root@128.199.25.103 << 'EOF'
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              cd /root/upbeat
+              git pull origin main
+              cd apps/worker
+              bun run build
+              pm2 restart upbeat-worker
+            EOF
