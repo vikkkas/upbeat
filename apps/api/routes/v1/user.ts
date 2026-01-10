@@ -13,7 +13,7 @@ userRouter.post("/signup", async (req, res) => {
     return res.status(403).json({
       status: "error",
       message: "Invalid input",
-      errors: data.error.errors,
+      errors: data.error,
     });
   }
   try {
@@ -63,7 +63,7 @@ userRouter.post("/signin", async (req, res) => {
     return res.status(403).json({
       status: "error",
       message: "Invalid input",
-      errors: data.error.errors,
+      errors: data.error,
     });
   }
 
