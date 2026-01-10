@@ -8,9 +8,9 @@ export function Navbar() {
   return (
     <nav className="fixed top-0 w-full z-50 border-b border-white/10 bg-black/50 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 md:px-6">
-        <Link className="flex items-center gap-2 font-bold text-xl" href="/">
-          <Activity className="h-6 w-6 text-emerald-500" />
-          <span className="text-white">Upbeat</span>
+        <Link className="flex items-center gap-2 font-bold text-xl tracking-tight" href="/">
+          <Activity className="h-7 w-7 text-emerald-500" />
+          <span className="text-white text-2xl">Upbeat</span>
         </Link>
         <div className="hidden md:flex gap-6 text-sm font-medium text-zinc-400">
           <Link className="hover:text-white transition-colors" href="#features">

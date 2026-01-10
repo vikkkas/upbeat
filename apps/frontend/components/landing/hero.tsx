@@ -77,6 +77,29 @@ export function Hero() {
             <span>30-second setup</span>
           </div>
         </motion.div>
+
+        {/* Dashboard Preview */}
+        <motion.div
+            initial={{ opacity: 0, y: 40, rotateX: 20 }}
+            animate={{ opacity: 1, y: 0, rotateX: 0 }}
+            transition={{ duration: 0.8, delay: 0.5, type: "spring" }}
+            className="mt-16 w-full max-w-5xl"
+            style={{ perspective: "1000px" }}
+        >
+            <div className="relative rounded-xl border border-white/10 bg-white/5 p-2 shadow-2xl backdrop-blur-sm ring-1 ring-white/10">
+                <div className="rounded-lg overflow-hidden border border-white/5 bg-black/50">
+                     <img 
+                        src="/hero-dashboard.png" 
+                        alt="Upbeat Dashboard" 
+                        className="w-full h-auto object-cover rounded-lg shadow-2xl"
+                     />
+                </div>
+                
+                {/* Decorative Glows */}
+                <div className="absolute -top-20 -left-20 w-[400px] h-[400px] bg-emerald-500/20 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute -bottom-20 -right-20 w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none" />
+            </div>
+        </motion.div>
       </div>
     </section>
   );
